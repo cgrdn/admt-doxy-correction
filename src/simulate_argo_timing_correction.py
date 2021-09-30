@@ -47,9 +47,9 @@ doxy_smooth = pd.Series(doxy[::-1]).rolling(w).mean().values[::-1]
 
 # artificially increase sampling rate
 pres_hr = np.arange(0, 2000, 0.1)
+time_hr = -(pres_hr - np.max(pres_hr))/vv/60/24 # time in days 
 f = interp1d(pres, doxy, kind='linear', bounds_error=False, fill_value='extrapolate')
 doxy_hr = f(pres_hr)
-time_hr = -(pres_hr - np.max(pres_hr))/vv/60/24 # time in days 
 f = interp1d(pres, temp, kind='linear', bounds_error=False, fill_value='extrapolate')
 temp_hr = f(pres_hr)
 
