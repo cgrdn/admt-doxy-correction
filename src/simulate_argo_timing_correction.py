@@ -54,9 +54,10 @@ f = interp1d(pres, temp, kind='linear', bounds_error=False, fill_value='extrapol
 temp_hr = f(pres_hr)
 
 # correct for a boundary layer thickness that corresponds to tau=70 at 20 deg C
-doxy_corr = bgc.correct_response_time(time, doxy, temp, 125)
-doxy_corr_smooth = bgc.correct_response_time(time, doxy_smooth, temp, 125)
-doxy_corr_hr = bgc.correct_response_time(time_hr, doxy_hr, temp_hr, 125)
+Il = 125
+doxy_corr = bgc.correct_response_time(time, doxy, temp, Il)
+doxy_corr_smooth = bgc.correct_response_time(time, doxy_smooth, temp, Il)
+doxy_corr_hr = bgc.correct_response_time(time_hr, doxy_hr, temp_hr, Il)
 
 # NOTE: it would be nice to put a vertical rug on this plot to show location of obs
 
