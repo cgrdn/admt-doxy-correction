@@ -38,26 +38,29 @@ cc = Dataset(core_fn)
 temp = cc['TEMP'][:].compressed()
 
 # arbitrarily assign times based on 10-15 m/min ascent w/ small amount of noise
-vv = 10 # vertical vel in m/min
+# NOTE: speed is the villian here when it looks bad, meas need to be frequent
+# should look at typical ascent rates, though I am pretty sure it is 10-15m/min
+vv = 5 # vertical vel in m/min
 time = -(pres - np.max(pres))/vv/60/24 # time in days 
 
 # smooth oxygen
-w = 15
+w = 7
+# do from bottom up so that nan values are at depth
 doxy_smooth = pd.Series(doxy[::-1]).rolling(w).mean().values[::-1]
 
 # artificially increase sampling rate
-pres_hr = np.arange(0, 2000, 0.1)
-time_hr = -(pres_hr - np.max(pres_hr))/vv/60/24 # time in days 
-f = interp1d(pres, doxy, kind='linear', bounds_error=False, fill_value='extrapolate')
-doxy_hr = f(pres_hr)
-f = interp1d(pres, temp, kind='linear', bounds_error=False, fill_value='extrapolate')
-temp_hr = f(pres_hr)
+# pres_hr = np.arange(0, 2000, 0.1)
+# time_hr = -(pres_hr - np.max(pres_hr))/vv/60/24 # time in days 
+# f = interp1d(pres, doxy, kind='linear', bounds_error=False, fill_value='extrapolate')
+# doxy_hr = f(pres_hr)
+# f = interp1d(pres, temp, kind='linear', bounds_error=False, fill_value='extrapolate')
+# temp_hr = f(pres_hr)
 
 # correct for a boundary layer thickness that corresponds to tau=70 at 20 deg C
 Il = 125
 doxy_corr = bgc.correct_response_time(time, doxy, temp, Il)
 doxy_corr_smooth = bgc.correct_response_time(time, doxy_smooth, temp, Il)
-doxy_corr_hr = bgc.correct_response_time(time_hr, doxy_hr, temp_hr, Il)
+# doxy_corr_hr = bgc.correct_response_time(time_hr, doxy_hr, temp_hr, Il)
 
 # NOTE: it would be nice to put a vertical rug on this plot to show location of obs
 
@@ -74,6 +77,7 @@ axes[1].plot(doxy_corr_smooth, pres, label='Time Response Correction\nof Smoothe
 axes[1].set_xlabel('Diss. Oxygen ($\mathregular{\mu}$mol kg$^{-1}$)')
 axes[1].legend(loc=2, fontsize=6)
 
+axes[0].set_title('Vertical Velocity: {} m min$^{{-1}}$'.format(vv), loc='left')
 axes[0].set_ylim((250,0))
 
 wmo = fn.as_posix().split('/')[-3]
