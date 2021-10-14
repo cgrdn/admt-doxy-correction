@@ -82,4 +82,3 @@ axes[0].set_ylim((250,0))
 
 wmo = fn.as_posix().split('/')[-3]
 fig.savefig(Path('../figures/{}_DOXY_trc_example.png'.format(wmo)), bbox_inches='tight', dpi=350)
-
