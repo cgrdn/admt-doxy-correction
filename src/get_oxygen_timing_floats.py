@@ -30,8 +30,10 @@ def download_file(ftp, fn, local_dir):
 # Argo index has a 'parameters' field where it is listed
 
 # get bgc index, replace with your local path to the index
-bgc_file = Path('/Users/GordonC/Documents/data/Argo/argo_bio-profile_index.txt.gz')
+argo_path = Path('/Users/GordonC/Documents/data/Argo')
+bgc_file = argo_path / 'argo_bio-profile_index.txt.gz'
 bx = pd.read_csv(bgc_file, header=8, compression='gzip')
+bx['wmo'] = [int(f.split('/')[-3]) for f in bx['file']]
 
 # subset to only oxygen floats, and then only floats with timing
 bx = bx[bx['parameters'].str.contains('DOXY')]
@@ -42,12 +44,10 @@ bx_time = bx[bx['parameters'].str.contains('MTIME')]
 # field exists. 
 
 # first, get the unique floats with oxygen
-# populate a wmo columns
-bx['wmo'] = [int(f.split('/')[-3]) for f in bx['file']]
 doxy_floats = bx['wmo'].unique()
 
 # NB_SAMPLE_CTD is in core file, so get the core index
-core_file = bgc_file.parent / 'ar_index_global_prof.txt.gz'
+core_file = argo_path / 'ar_index_global_prof.txt.gz'
 cx = pd.read_csv(core_file, header=8, compression='gzip')
 # populate wmo column
 cx['wmo'] = [int(f.split('/')[-3]) for f in cx['file']]
@@ -58,7 +58,7 @@ cx_doxy = cx[cx['wmo'].isin(doxy_floats)]
 # check for NB_SAMPLE_ID - note that taking the most recent profile means it
 # might not be present in past profiles, if a given DAC perhaps updated their
 # processing chain
-root_argo_dir = bgc_file.parent / 'dac'
+dac_dir = argo_path / 'dac'
 url = 'ftp.ifremer.fr'
 ftp = ftplib.FTP(url)
 ftp.login()
@@ -71,9 +71,9 @@ for flt in doxy_floats:
     # get most recent core file
     recent_core = cx_doxy[cx_doxy['wmo'] == flt]['file'].iloc[-1]
     # download it
-    download_file(ftp, recent_core, root_argo_dir)
+    download_file(ftp, recent_core, dac_dir)
     # read it in
-    nc = Dataset(root_argo_dir / recent_core)
+    nc = Dataset(dac_dir / recent_core)
     # check for NB_SAMPLE_CTD
     sample_ix.append('NB_SAMPLE_CTD' in nc.variables.keys())
 
@@ -81,3 +81,6 @@ for flt in doxy_floats:
 # recent profile
 nb_doxy_floats = doxy_floats[sample_ix]
 nb_doxy_ix = cx_doxy[cx_doxy['wmo'].isin(nb_doxy_floats)]
+
+# check - do any floats with NB_SAMPLE_CTD not have MTIME?
+nb_no_mtime = set(nb_doxy_floats) - set(bx_time['wmo'].unique())
