@@ -84,3 +84,16 @@ nb_doxy_ix = cx_doxy[cx_doxy['wmo'].isin(nb_doxy_floats)]
 
 # check - do any floats with NB_SAMPLE_CTD not have MTIME?
 nb_no_mtime = set(nb_doxy_floats) - set(bx_time['wmo'].unique())
+
+# write lists
+list_path = Path('../ref/')
+list_path.mkdir(exist_ok=True)
+fid = open(list_path / 'nb_sample_ctd_and_doxy_float_list.txt', 'w')
+for f in nb_doxy_floats:
+    fid.write(f'{f}\n')
+fid.close()
+
+fid = open(list_path / 'mtime_and_doxy_float_list.txt', 'w')
+for f in bx_time['wmo'].unique():
+    fid.write(f'{f}\n')
+fid.close()
